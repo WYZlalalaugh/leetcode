@@ -13,9 +13,12 @@
   - [11. 盛最多水的容器](#11-盛最多水的容器)
   - [15. 三数之和](#15-三数之和)
   - [283. 移动零](#283-移动零)
+  - [42. 接雨水](#42-接雨水)
 - [三、滑动窗口](#三滑动窗口)
   - [3. 无重复字符的最长子串](#3-无重复字符的最长子串)
   - [438. 找到字符串中所有字母异位词](#438-找到字符串中所有字母异位词)
+- [四、前缀和](#四前缀和)
+  - [560. 和为 K 的子数组](#560-和为-k-的子数组)
 
 ---
 
@@ -520,6 +523,100 @@ class Solution:
 - **时间复杂度：** `O(n)`，每个元素最多遍历一次。
 - **空间复杂度：** `O(1)`，只使用了常数额外空间。
 
+## 42. 接雨水
+
+### 题目描述
+
+给定 `n` 个非负整数表示每个宽度为 `1` 的柱子的高度图，计算按此排列的柱子，下雨之后可以接多少雨水。
+
+### 示例
+
+**示例 1**
+
+输入：
+
+```python
+height = [0,1,0,2,1,0,1,3,2,1,2,1]
+```
+
+输出：
+
+```python
+6
+```
+
+解释：上面是由数组 `[0,1,0,2,1,0,1,3,2,1,2,1]` 表示的高度图，在这种情况下，可以接 `6` 个单位的雨水（蓝色部分表示雨水）。
+
+![接雨水示意图](rainwatertrap.png)
+
+**示例 2**
+
+输入：
+
+```python
+height = [4,2,0,3,2,5]
+```
+
+输出：
+
+```python
+9
+```
+
+### 提示
+
+- `n == height.length`
+- `1 <= n <= 2 * 10^4`
+- `0 <= height[i] <= 10^5`
+
+### 题解
+
+#### 思路
+
+使用双指针，分别从左右两端向中间收缩，并维护左右两侧的最高高度。
+
+水位由较低一侧的最高高度决定：
+
+- 如果当前高度小于这一侧的最高高度，就能积水
+- 否则更新这一侧的最高高度
+
+#### 代码
+
+```python
+from typing import List
+
+
+class Solution:
+    def trap(self, height: List[int]) -> int:
+        if not height:
+            return 0
+
+        left, right = 0, len(height) - 1
+        left_max = right_max = 0
+        total = 0
+
+        while left < right:
+            if height[left] < height[right]:
+                if height[left] >= left_max:
+                    left_max = height[left]
+                else:
+                    total += left_max - height[left]
+                left += 1
+            else:
+                if height[right] >= right_max:
+                    right_max = height[right]
+                else:
+                    total += right_max - height[right]
+                right -= 1
+
+        return total
+```
+
+#### 复杂度分析
+
+- **时间复杂度：** `O(n)`
+- **空间复杂度：** `O(1)`
+
 ---
 
 # 三、滑动窗口
@@ -720,3 +817,102 @@ class Solution:
 
 - **时间复杂度：** `O((n - m) × 26)`，其中 `n` 是 `s` 的长度，`m` 是 `p` 的长度。
 - **空间复杂度：** `O(26)`，用于存储字符计数数组。
+
+# 四、前缀和
+
+> 这一类题通常通过维护前缀和，将区间求和转化为哈希查找。
+
+## 560. 和为 K 的子数组
+
+### 题目描述
+
+给你一个整数数组 `nums` 和一个整数 `k`，请你统计并返回该数组中和为 `k` 的子数组的个数。
+
+子数组是数组中元素的连续非空序列。
+
+### 示例
+
+**示例 1**
+
+输入：
+
+```python
+nums = [1,1,1], k = 2
+```
+
+输出：
+
+```python
+2
+```
+
+**示例 2**
+
+输入：
+
+```python
+nums = [1,2,3], k = 3
+```
+
+输出：
+
+```python
+2
+```
+
+### 提示
+
+- `1 <= nums.length <= 2 * 10^4`
+- `-1000 <= nums[i] <= 1000`
+- `-10^7 <= k <= 10^7`
+
+### 题解
+
+#### 思路
+
+看到“连续子数组求和”这类题时，通常会想到前缀和。
+
+设 `prefix[j]` 表示前 `j` 个元素的和，那么对于任意子数组 `[i, j)`：
+
+```python
+prefix[j] - prefix[i] = k
+```
+
+也就是：
+
+```python
+prefix[i] = prefix[j] - k
+```
+
+所以我们只需要在遍历时，统计之前出现过多少个前缀和 `prefix[j] - k`，就能得到当前结尾的合法子数组个数。
+
+#### 代码
+
+```python
+from collections import defaultdict
+from typing import List
+
+
+class Solution:
+    def subarraySum(self, nums: List[int], k: int) -> int:
+        count = defaultdict(int)
+        count[0] = 1
+        ans = 0
+        prefix = 0
+
+        for x in nums:
+            prefix += x
+            ans += count[prefix - k]
+            count[prefix] += 1
+
+        return ans
+```
+
+#### 复杂度分析
+
+- **时间复杂度：** `O(n)`
+- **空间复杂度：** `O(n)`
+
+
+
+
